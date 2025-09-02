@@ -6,8 +6,15 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.bs.model.TaxModel;
+import com.bs.service.TaxService;
 
 @Controller
 public class TaxController {
@@ -15,42 +22,58 @@ public class TaxController {
 @RequestMapping("/start")
 public String showInputPage()
 {
-	System.out.print("Conroller call...!!");
+	System.out.print("Start..");
 	return "input.jsp";
 }
 
-@RequestMapping("/compute")
-public void computeTax(HttpServletRequest request,HttpServletResponse response)throws IOException
-{
-String s1=request.getParameter("income");
-String s2=request.getParameter("age");
-int income=Integer.parseInt(s1);
-int age=Integer.parseInt(s2);
+//@RequestMapping("/compute")
+/*public ModelAndView computeTax(HttpServletRequest request,HttpServletResponse response)throws IOException
+*/
+/*public ModelAndView computeTax(@RequestParam("income") int income, @RequestParam("age") int age)//complex for decleration:
+*/
+@Autowired
+private TaxService taxService;
 
-int tax=0;
-int rebate=0;
-int nettax=0;
-if(income>=500000)
+@RequestMapping("/compute")            //   l use taxModel in view page ${TaxModel.tax}
+public ModelAndView computeTax(@ModelAttribute("property") TaxModel taxModel)
 {
-	tax=income*20/100;
-}
-else {
-	tax=income*10/100;	
-}
-if(age>60)
-{
-	rebate=tax*20/100;
-}
+	System.out.println(taxModel);
+	
+	//request read
+	
+	/*
+	   String s1=request.getParameter("income"); String
+	   s2=request.getParameter("age");
+       int income=Integer.parseInt(s1);
+       int age=Integer.parseInt(s2);
+     */
+	
+	/* no need to set externall i use @ModelAttribute("taxModel") TaxModel taxModel;
+	 * TaxModel taxModel=new TaxModel(); 
+	 * taxModel.setIncome(income);
+	 * taxModel.setAge(age);
+	 */
+	
+	
+//request process
+	
+	/*Tight Coupled Controller is totally dependent on TaxService*/
+//TaxService taxService=new TaxService();//Tight Coupling
+taxService.taxCompute(taxModel);
 
-nettax=tax-rebate;
-PrintWriter out=response.getWriter();
-out.println("income   :"+ income);
-out.println("age      :"+ age);
-out.println("tax      :"+ tax);
-out.println("rebate   :"+ rebate);
-out.println("netTax   :"+ nettax);
-
-out.close();
+//response
+ModelAndView mv=new ModelAndView();
+//mv.addObject("taxModel",taxModel); //we already mention in method  decleration  @ModelAttribute("taxModel")
+mv.setViewName("result.jsp");
+return mv;
+/*
+ * PrintWriter out=response.getWriter(); out.println("income   :"+
+ * taxModel.getIncome()); out.println("age      :"+ taxModel.getAge());
+ * out.println("tax      :"+ taxModel.getTax()); out.println("rebate   :"+
+ * taxModel.getRebate()); out.println("netTax   :"+ taxModel.getNetTax());
+ * 
+ * out.close();
+ */
 
 }
 }
